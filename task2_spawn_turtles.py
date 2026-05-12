@@ -9,21 +9,21 @@ class SpawnAndMoveTurtles(Node):
     def __init__(self):
         super().__init__('spawn_and_move_turtles')
         
-        # Service client to spawn turtles
         self.spawn_cli = self.create_client(Spawn, 'spawn')
         while not self.spawn_cli.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('service not available, waiting again...')
+            self.get_logger().info('service not available, waiting...')
             
-        # Spawn turtle2 and turtle3
-        self.spawn_turtle(5.0, 5.0, 0.0, 'turtle2')
-        self.spawn_turtle(2.0, 8.0, 0.0, 'turtle3')
+        # Spawn turtle2 at the top right for Rectangle
+        self.spawn_turtle(8.0, 7.0, 0.0, 'turtle2')
+        # Spawn turtle3 at the bottom for Triangle
+        self.spawn_turtle(5.0, 2.0, 0.0, 'turtle3')
         
-        # Publishers for all three turtles
-        self.pub1 = self.create_publisher(Twist, 'turtle1/cmd_vel', 10)
-        self.pub2 = self.create_publisher(Twist, 'turtle2/cmd_vel', 10)
-        self.pub3 = self.create_publisher(Twist, 'turtle3/cmd_vel', 10)
+        self.pub1 = self.create_publisher(Twist, 'turtle1/cmd_vel', 10) # turtle1 starts at 5.5, 5.5 (Circle)
+        self.pub2 = self.create_publisher(Twist, 'turtle2/cmd_vel', 10) # turtle2 Rectangle
+        self.pub3 = self.create_publisher(Twist, 'turtle3/cmd_vel', 10) # turtle3 Triangle
         
-        self.timer = self.create_timer(0.5, self.timer_callback)
+        self.start_time = time.time()
+        self.timer = self.create_timer(0.1, self.timer_callback)
 
     def spawn_turtle(self, x, y, theta, name):
         req = Spawn.Request()
@@ -31,26 +31,37 @@ class SpawnAndMoveTurtles(Node):
         req.y = y
         req.theta = theta
         req.name = name
-        future = self.spawn_cli.call_async(req)
-        # We won't block on the future to keep it simple
+        self.spawn_cli.call_async(req)
 
     def timer_callback(self):
+        t = time.time() - self.start_time
+        
         # Turtle 1: Circle
         msg1 = Twist()
-        msg1.linear.x = 2.0
-        msg1.angular.z = 1.0
+        msg1.linear.x = 1.5
+        msg1.angular.z = 1.5
         self.pub1.publish(msg1)
         
-        # Turtle 2: Straight line
+        # Turtle 2: Rectangle (cycle = 2.5s -> 1.5s straight, 1s turn)
         msg2 = Twist()
-        msg2.linear.x = 1.5
-        msg2.angular.z = 0.0
+        t2_mod = t % 2.5
+        if t2_mod < 1.5:
+            msg2.linear.x = 1.5
+            msg2.angular.z = 0.0
+        else:
+            msg2.linear.x = 0.0
+            msg2.angular.z = 1.5708 # 90 degrees
         self.pub2.publish(msg2)
         
-        # Turtle 3: Spin in place
+        # Turtle 3: Triangle (cycle = 3.0s -> 2.0s straight, 1.0s turn)
         msg3 = Twist()
-        msg3.linear.x = 0.0
-        msg3.angular.z = 3.0
+        t3_mod = t % 3.0
+        if t3_mod < 2.0:
+            msg3.linear.x = 1.5
+            msg3.angular.z = 0.0
+        else:
+            msg3.linear.x = 0.0
+            msg3.angular.z = 2.094 # 120 degrees
         self.pub3.publish(msg3)
 
 def main(args=None):

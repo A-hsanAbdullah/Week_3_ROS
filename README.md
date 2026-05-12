@@ -52,13 +52,17 @@ ros2 run turtlesim turtlesim_node
 In a **second terminal**, you can run any of the task scripts directly from the Week3 folder:
 
 ### Task 1: Circular and Triangular Patterns
-This script moves `turtle1` in a circular pattern for a few seconds, then switches to a triangular pattern.
+Two separate scripts have been created. One moves `turtle1` in a circular pattern, and the other in a triangular pattern.
 ```bash
-./task1_patterns.py
+# To run the circular pattern:
+./task1_circle.py
+
+# To run the triangular pattern:
+./task1_triangle.py
 ```
 
-### Task 2: Spawn Three Turtles and Move Them
-This script spawns `turtle2` and `turtle3`, and publishes different velocity commands to all three turtles simultaneously.
+### Task 2: Spawn Three Turtles and Move Them in Different Shapes
+This script spawns `turtle2` and `turtle3` at different, non-colliding locations. It then moves `turtle1` in a Circle, `turtle2` in a Rectangle, and `turtle3` in a Triangle simultaneously.
 ```bash
 ./task2_spawn_turtles.py
 ```
